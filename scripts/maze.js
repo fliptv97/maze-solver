@@ -2,21 +2,20 @@ import { Cell } from "./cell.js";
 import { Point, Tuple } from "./atoms.js";
 
 export class Maze {
-  constructor({ offsetX = 0, offsetY = 0, numCols, numRows, cellWidth, cellHeight = cellWidth }) {
-    this._offsetX = offsetX;
-    this._offsetY = offsetY;
+  constructor({ ctx, numCols, numRows, cellWidth, cellHeight = cellWidth, offsetX = 0, offsetY = 0 }) {
+    this._ctx = ctx;
     this._numCols = numCols;
     this._numRows = numRows;
     this._cellWidth = cellWidth;
     this._cellHeight = cellHeight;
+    this._offsetX = offsetX;
+    this._offsetY = offsetY;
 
-    this._cellsMatrix = new Array(numCols);
+    this._cellsMatrix = Array.from({ length: numCols }).map(() => Array.from({ length: numRows }));
   }
 
   init() {
     for (let i = 0; i < this._numCols; i++) {
-      this._cellsMatrix[i] = new Array(this._numRows);
-
       for (let j = 0; j < this._numRows; j++) {
         this._cellsMatrix[i][j] = new Cell(
           Point(this._offsetX + this._cellWidth * i, this._offsetY + this._cellHeight * j),
@@ -33,20 +32,20 @@ export class Maze {
     this._resetCellsVisitedState();
   }
 
-  draw(ctx) {
-    if (!ctx) {
-      throw new Exception("Maze: context for drawing wasn't provided");
+  draw() {
+    if (!this._ctx) {
+      throw new Error("Maze: context for drawing wasn't provided");
     }
 
     for (let col of this._cellsMatrix) {
       for (let cell of col) {
-        cell.draw(ctx);
+        cell.draw(this._ctx);
       }
     }
   }
 
   solve() {
-    throw new Error("Not implemented");
+    return this._solve(0, 0);
   }
 
   _generate(i, j) {
@@ -75,7 +74,7 @@ export class Maze {
 
       if (neighbors.length == 0) return;
 
-      let selectedNeighbor = randomChoice(neighbors);
+      let selectedNeighbor = choice(neighbors);
 
       if (selectedNeighbor[0] < i) {
         cell.hasWallLeft = false;
@@ -103,11 +102,46 @@ export class Maze {
     }
   }
 
-  _solve() {
-    throw new Error("Not implemented");
+  _solve(i, j) {
+    if (i === this._numCols - 1 && j === this._numRows - 1) {
+      return true;
+    }
+
+    let cell = this._cellsMatrix[i][j];
+    cell.visited = true;
+
+    let neighbors = [];
+
+    if (i > 0 && !this._cellsMatrix[i - 1][j].visited && !cell.hasWallLeft) {
+      neighbors.push(Tuple(i - 1, j));
+    }
+
+    if (i < this._numCols - 1 && !this._cellsMatrix[i + 1][j].visited && !cell.hasWallRight) {
+      neighbors.push(Tuple(i + 1, j));
+    }
+
+    if (j > 0 && !this._cellsMatrix[i][j - 1].visited && !cell.hasWallTop) {
+      neighbors.push(Tuple(i, j - 1));
+    }
+
+    if (j < this._numRows - 1 && !this._cellsMatrix[i][j + 1].visited && !cell.hasWallBottom) {
+      neighbors.push(Tuple(i, j + 1));
+    }
+
+    for (let [ni, nj] of neighbors) {
+      Cell.connect_cells(this._ctx, cell, this._cellsMatrix[ni][nj])
+
+      if (this._solve(ni, nj)) {
+        return true;
+      }
+
+      Cell.connect_cells(this._ctx, cell, this._cellsMatrix[ni][nj], true)
+    }
+    
+    return false;
   }
 }
 
-function randomChoice(arr) {
+function choice(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }

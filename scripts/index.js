@@ -15,8 +15,14 @@ document.addEventListener("DOMContentLoaded", () => {
   document.body.appendChild($canvas);
 
   // TODO: Almost all of this params should be calculated dynamically
-  let maze = new Maze({ offsetX: 50, offsetY: 50, numCols: 40, numRows: 16, cellWidth: 40 });
+  let maze = new Maze({ ctx, numCols: 40, numRows: 16, cellWidth: 40, offsetX: 50, offsetY: 50 });
 
   maze.init();
   maze.draw(ctx);
+
+  let solved = maze.solve();
+
+  if (!solved) {
+    window.alert("Maze can't be solved!");
+  }
 });
