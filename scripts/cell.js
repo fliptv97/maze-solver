@@ -16,7 +16,7 @@ export class Cell {
     this.hasWallRight = true;
     this.hasWallBottom = true;
 
-    this.visited = false;
+    this.isVisited = false;
   }
 
   get centerPoint() {

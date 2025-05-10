@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.body.appendChild($canvas);
 
   // TODO: Almost all of this params should be calculated dynamically
-  let maze = new Maze({ offsetX: 50, offsetY: 50, numCols: 16, numRows: 40, cellWidth: 40 });
+  let maze = new Maze({ offsetX: 50, offsetY: 50, numCols: 40, numRows: 16, cellWidth: 40 });
 
   maze.init();
   maze.draw(ctx);
