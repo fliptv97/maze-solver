@@ -12,6 +12,7 @@ export class Maze {
     this._offsetY = offsetY;
 
     this._cellsMatrix = Array.from({ length: numCols }).map(() => Array.from({ length: numRows }));
+    this._solutionSteps = [];
   }
 
   init() {
@@ -45,7 +46,29 @@ export class Maze {
   }
 
   solve() {
-    return this._solve(0, 0);
+    let solved = this._solve(0, 0);
+
+    this.drawSolution();
+
+    return solved;
+  }
+
+  drawSolution(initial = true) {
+    if (initial) {
+      this._animationCounter = 0;
+    }
+
+    window.setTimeout(() => {
+      let [src, dst, undo] = this._solutionSteps[this._animationCounter];
+
+      this._animationCounter++;
+
+      Cell.connect_cells(this._ctx, src, dst, undo);
+
+      if (this._animationCounter < this._solutionSteps.length) {
+        this.drawSolution(false);
+      }
+    }, 20);
   }
 
   _generate(i, j) {
@@ -129,15 +152,15 @@ export class Maze {
     }
 
     for (let [ni, nj] of neighbors) {
-      Cell.connect_cells(this._ctx, cell, this._cellsMatrix[ni][nj])
+      this._solutionSteps.push(Tuple(cell, this._cellsMatrix[ni][nj], false));
 
       if (this._solve(ni, nj)) {
         return true;
       }
 
-      Cell.connect_cells(this._ctx, cell, this._cellsMatrix[ni][nj], true)
+      this._solutionSteps.push(Tuple(cell, this._cellsMatrix[ni][nj], true));
     }
-    
+
     return false;
   }
 }
